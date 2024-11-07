@@ -1,33 +1,44 @@
 package com.example.SpringSecurity.services;
 
 import com.example.SpringSecurity.model.User;
+import com.example.SpringSecurity.repo.UserRepo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class UserService {
 
-    List<User> users = new ArrayList<>();
+    @Autowired
+    private JWTService jwtService;
 
-    public UserService(){
-        users.add(new User("pritam","abc","abc@gmail.com"));
-        users.add(new User("shbham","abcd","abcd@gmail.com"));
-    }
-    //get all users
-    public List<User> getAllUsers(){
-        return this.users;
+
+    @Autowired
+    private UserRepo repo;
+
+    @Autowired
+    private AuthenticationManager manager;
+
+    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(13);
+
+
+    public User         register(User user){
+user.setPassword(encoder.encode(user.getPassword()));
+
+return  repo.save(user);
     }
 
-    //get single user
-    public User getUser(String username){
-        return this.users.stream().filter((user) -> user.getUsername().equals(username)).findAny().orElse(null);
+    public String verify(User users){
+        Authentication authentication = manager.authenticate(new UsernamePasswordAuthenticationToken(users.getUsername(),users.getPassword()));
+
+        if(authentication.isAuthenticated())
+            return jwtService.generateToken(users.getUsername());
+
+        return "Fail";
     }
 
-    public User addUser(User user){
-        this.users.add(user);
-        return user;
-    }
 
 }
