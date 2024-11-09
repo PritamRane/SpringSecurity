@@ -1,6 +1,7 @@
 package com.example.SpringSecurity.config;
 
 
+import com.example.SpringSecurity.services.JwtAuthenticationEntryPoint;
 import com.example.SpringSecurity.services.MyUserDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class MySecurityConfig {
 
+    @Autowired
+    private JwtAuthenticationEntryPoint point;
 
     @Autowired
     private MyUserDetailService userDetailService;
@@ -47,6 +50,7 @@ return http
                 .anyRequest().authenticated()) //all incoming requests need to be authenticated
 //                .formLogin(Customizer.withDefaults()) // form loging with default user password
         .httpBasic(Customizer.withDefaults()) // login for postman
+        .exceptionHandling(ex -> ex.authenticationEntryPoint(point))
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
